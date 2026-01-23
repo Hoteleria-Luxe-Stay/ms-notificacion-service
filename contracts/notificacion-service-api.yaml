@@ -1,0 +1,535 @@
+openapi: 3.0.3
+info:
+  title: Notificacion Service API
+  description: |
+    Microservicio de notificaciones y mensajeria.
+    Consume eventos de RabbitMQ y envia notificaciones.
+    **Responsable**: Integrante 4
+    **Rama Git**: feature/notificacion-service
+  version: 1.0.0
+  contact:
+    name: Equipo Notificacion
+
+servers:
+  - url: http://localhost:8084/api/v1
+    description: Local development
+  - url: http://notificacion-service:8084/api/v1
+    description: Docker/K8s internal
+
+tags:
+  - name: notificaciones
+    description: Gestion de notificaciones
+  - name: plantillas
+    description: Plantillas de mensajes
+  - name: contacto
+    description: Formulario de contacto
+
+paths:
+  # ==================== NOTIFICACIONES ====================
+  /notificaciones:
+    get:
+      tags: [notificaciones]
+      summary: Listar notificaciones (admin)
+      operationId: listarNotificaciones
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: tipo
+          in: query
+          schema:
+            type: string
+            enum: [EMAIL, SMS, PUSH]
+        - name: estado
+          in: query
+          schema:
+            type: string
+            enum: [PENDIENTE, ENVIADA, FALLIDA]
+        - name: fechaDesde
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: fechaHasta
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Lista de notificaciones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NotificacionResponse'
+
+  /notificaciones/{id}:
+    get:
+      tags: [notificaciones]
+      summary: Obtener notificacion por ID
+      operationId: obtenerNotificacion
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: Notificacion encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificacionResponse'
+        '404':
+          description: No encontrada
+
+  /notificaciones/{id}/reenviar:
+    post:
+      tags: [notificaciones]
+      summary: Reenviar notificacion fallida
+      operationId: reenviarNotificacion
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: Notificacion reenviada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificacionResponse'
+        '400':
+          description: No se puede reenviar
+
+  # ==================== ENVIO MANUAL ====================
+  /notificaciones/enviar:
+    post:
+      tags: [notificaciones]
+      summary: Enviar notificacion manual (admin)
+      operationId: enviarNotificacion
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnviarNotificacionRequest'
+      responses:
+        '200':
+          description: Notificacion enviada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificacionResponse'
+        '400':
+          description: Error en envio
+
+  # ==================== MIS NOTIFICACIONES ====================
+  /mis-notificaciones:
+    get:
+      tags: [notificaciones]
+      summary: Listar mis notificaciones
+      operationId: listarMisNotificaciones
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: leida
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Lista de notificaciones del usuario
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NotificacionUsuarioResponse'
+
+  /mis-notificaciones/{id}/leer:
+    post:
+      tags: [notificaciones]
+      summary: Marcar notificacion como leida
+      operationId: marcarComoLeida
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: Marcada como leida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  /mis-notificaciones/leer-todas:
+    post:
+      tags: [notificaciones]
+      summary: Marcar todas como leidas
+      operationId: marcarTodasComoLeidas
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Todas marcadas como leidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  # ==================== PLANTILLAS ====================
+  /plantillas:
+    get:
+      tags: [plantillas]
+      summary: Listar plantillas (admin)
+      operationId: listarPlantillas
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de plantillas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PlantillaResponse'
+
+    post:
+      tags: [plantillas]
+      summary: Crear plantilla (admin)
+      operationId: crearPlantilla
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlantillaRequest'
+      responses:
+        '201':
+          description: Plantilla creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlantillaResponse'
+
+  /plantillas/{id}:
+    get:
+      tags: [plantillas]
+      summary: Obtener plantilla por ID
+      operationId: obtenerPlantilla
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: Plantilla encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlantillaResponse'
+
+    put:
+      tags: [plantillas]
+      summary: Actualizar plantilla
+      operationId: actualizarPlantilla
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlantillaRequest'
+      responses:
+        '200':
+          description: Plantilla actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlantillaResponse'
+
+    delete:
+      tags: [plantillas]
+      summary: Eliminar plantilla
+      operationId: eliminarPlantilla
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: Plantilla eliminada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  # ==================== CONTACTO (Publico) ====================
+  /contacto:
+    post:
+      tags: [contacto]
+      summary: Enviar mensaje de contacto
+      operationId: enviarContacto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactoRequest'
+      responses:
+        '200':
+          description: Mensaje enviado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Error de validacion
+
+  # ==================== ESTADISTICAS ====================
+  /estadisticas:
+    get:
+      tags: [notificaciones]
+      summary: Obtener estadisticas de notificaciones (admin)
+      operationId: obtenerEstadisticas
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: fechaDesde
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: fechaHasta
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Estadisticas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EstadisticasResponse'
+
+  # ==================== HEALTH CHECK ====================
+  /health:
+    get:
+      tags: [notificaciones]
+      summary: Health check del servicio
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Servicio saludable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    IdPath:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+
+  schemas:
+    NotificacionResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        tipo:
+          type: string
+          enum: [EMAIL, SMS, PUSH]
+        destinatario:
+          type: string
+        asunto:
+          type: string
+        contenido:
+          type: string
+        estado:
+          type: string
+          enum: [PENDIENTE, ENVIADA, FALLIDA]
+        fechaCreacion:
+          type: string
+          format: date-time
+        fechaEnvio:
+          type: string
+          format: date-time
+        intentos:
+          type: integer
+        errorMensaje:
+          type: string
+
+    NotificacionUsuarioResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        titulo:
+          type: string
+        mensaje:
+          type: string
+        tipo:
+          type: string
+        leida:
+          type: boolean
+        fechaCreacion:
+          type: string
+          format: date-time
+
+    EnviarNotificacionRequest:
+      type: object
+      required: [tipo, destinatario, asunto, contenido]
+      properties:
+        tipo:
+          type: string
+          enum: [EMAIL, SMS, PUSH]
+        destinatario:
+          type: string
+          description: Email, numero de telefono o ID de usuario
+        asunto:
+          type: string
+          maxLength: 200
+        contenido:
+          type: string
+        plantillaId:
+          type: integer
+          format: int64
+          description: Usar plantilla en lugar de contenido
+        variables:
+          type: object
+          additionalProperties:
+            type: string
+          description: Variables para la plantilla
+
+    PlantillaRequest:
+      type: object
+      required: [codigo, nombre, asunto, contenido]
+      properties:
+        codigo:
+          type: string
+          maxLength: 50
+          description: Codigo unico (ej. RESERVA_CONFIRMADA)
+        nombre:
+          type: string
+          maxLength: 100
+        asunto:
+          type: string
+          maxLength: 200
+        contenido:
+          type: string
+          description: Soporta variables como {{nombre}}, {{fecha}}
+        tipo:
+          type: string
+          enum: [EMAIL, SMS, PUSH]
+        activa:
+          type: boolean
+          default: true
+
+    PlantillaResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        codigo:
+          type: string
+        nombre:
+          type: string
+        asunto:
+          type: string
+        contenido:
+          type: string
+        tipo:
+          type: string
+        activa:
+          type: boolean
+        fechaCreacion:
+          type: string
+          format: date-time
+        fechaModificacion:
+          type: string
+          format: date-time
+
+    ContactoRequest:
+      type: object
+      required: [nombre, email, mensaje]
+      properties:
+        nombre:
+          type: string
+          maxLength: 100
+        email:
+          type: string
+          format: email
+        telefono:
+          type: string
+          maxLength: 20
+        asunto:
+          type: string
+          maxLength: 200
+        mensaje:
+          type: string
+          maxLength: 2000
+
+    EstadisticasResponse:
+      type: object
+      properties:
+        totalEnviadas:
+          type: integer
+        totalFallidas:
+          type: integer
+        totalPendientes:
+          type: integer
+        porTipo:
+          type: object
+          additionalProperties:
+            type: integer
+        tasaExito:
+          type: number
+          format: double
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [UP, DOWN]
+        rabbitmq:
+          type: string
+          enum: [UP, DOWN]
+        database:
+          type: string
+          enum: [UP, DOWN]
+        timestamp:
+          type: string
+          format: date-time
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
