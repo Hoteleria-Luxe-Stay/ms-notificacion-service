@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-public class NotificacionesController implements NotificacionesApi, MisNotificacionesApi, EstadisticasApi, HealthApi {
+public class NotificacionesController implements NotificacionesApi {
 
     private final NotificacionService notificacionService;
     private final AuthInternalApi authInternalApi;
