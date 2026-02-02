@@ -9,13 +9,13 @@ import com.hotel.notificacion.api.dto.NotificacionUsuarioResponse;
 import com.hotel.notificacion.core.notificacion.model.Notificacion;
 import com.hotel.notificacion.core.notificacion.service.NotificacionService;
 import com.hotel.notificacion.helpers.mappers.NotificacionMapper;
-import com.hotel.notificacion.internal.AuthInternalApi;
 import com.hotel.notificacion.internal.dto.AuthTokenValidationResponse;
-import org.springframework.http.HttpHeaders;
+import com.hotel.notificacion.infrastructure.security.AuthContextFilter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.context.request.RequestAttributes;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -28,14 +28,11 @@ import java.util.Optional;
 public class NotificacionesController implements NotificacionesApi {
 
     private final NotificacionService notificacionService;
-    private final AuthInternalApi authInternalApi;
     private final NativeWebRequest request;
 
     public NotificacionesController(NotificacionService notificacionService,
-                                    AuthInternalApi authInternalApi,
                                     NativeWebRequest request) {
         this.notificacionService = notificacionService;
-        this.authInternalApi = authInternalApi;
         this.request = request;
     }
 
@@ -45,7 +42,7 @@ public class NotificacionesController implements NotificacionesApi {
             String estado,
             LocalDate fechaDesde,
             LocalDate fechaHasta) {
-        AuthTokenValidationResponse auth = resolveAuth(resolveAuthorization());
+        AuthTokenValidationResponse auth = getAuth();
         if (auth == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -59,7 +56,7 @@ public class NotificacionesController implements NotificacionesApi {
 
     @Override
     public ResponseEntity<NotificacionResponse> obtenerNotificacion(Long id) {
-        AuthTokenValidationResponse auth = resolveAuth(resolveAuthorization());
+        AuthTokenValidationResponse auth = getAuth();
         if (auth == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -73,7 +70,7 @@ public class NotificacionesController implements NotificacionesApi {
 
     @Override
     public ResponseEntity<NotificacionResponse> reenviarNotificacion(Long id) {
-        AuthTokenValidationResponse auth = resolveAuth(resolveAuthorization());
+        AuthTokenValidationResponse auth = getAuth();
         if (auth == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -87,7 +84,7 @@ public class NotificacionesController implements NotificacionesApi {
 
     @Override
     public ResponseEntity<NotificacionResponse> enviarNotificacion(EnviarNotificacionRequest request) {
-        AuthTokenValidationResponse auth = resolveAuth(resolveAuthorization());
+        AuthTokenValidationResponse auth = getAuth();
         if (auth == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -102,7 +99,7 @@ public class NotificacionesController implements NotificacionesApi {
 
     @Override
     public ResponseEntity<List<NotificacionUsuarioResponse>> listarMisNotificaciones(Boolean leida) {
-        AuthTokenValidationResponse auth = resolveAuth(resolveAuthorization());
+        AuthTokenValidationResponse auth = getAuth();
         if (auth == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -117,7 +114,7 @@ public class NotificacionesController implements NotificacionesApi {
 
     @Override
     public ResponseEntity<MessageResponse> marcarComoLeida(Long id) {
-        AuthTokenValidationResponse auth = resolveAuth(resolveAuthorization());
+        AuthTokenValidationResponse auth = getAuth();
         if (auth == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -133,7 +130,7 @@ public class NotificacionesController implements NotificacionesApi {
 
     @Override
     public ResponseEntity<MessageResponse> marcarTodasComoLeidas() {
-        AuthTokenValidationResponse auth = resolveAuth(resolveAuthorization());
+        AuthTokenValidationResponse auth = getAuth();
         if (auth == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -152,7 +149,7 @@ public class NotificacionesController implements NotificacionesApi {
     public ResponseEntity<EstadisticasResponse> obtenerEstadisticas(
             LocalDate fechaDesde,
             LocalDate fechaHasta) {
-        AuthTokenValidationResponse auth = resolveAuth(resolveAuthorization());
+        AuthTokenValidationResponse auth = getAuth();
         if (auth == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -196,27 +193,19 @@ public class NotificacionesController implements NotificacionesApi {
         return Optional.ofNullable(request);
     }
 
-    private AuthTokenValidationResponse resolveAuth(String authorization) {
-        if (authorization == null || !authorization.startsWith("Bearer ")) {
-            return null;
-        }
-        String token = authorization.substring(7);
-        AuthTokenValidationResponse response = authInternalApi.validateToken(token).orElse(null);
-        if (response == null || !Boolean.TRUE.equals(response.getValid())) {
-            return null;
-        }
-        return response;
-    }
-
     private boolean isAdmin(AuthTokenValidationResponse auth) {
         return auth.getRole() != null && "ADMIN".equalsIgnoreCase(auth.getRole());
     }
 
-    private String resolveAuthorization() {
+    private AuthTokenValidationResponse getAuth() {
         Optional<NativeWebRequest> request = getRequest();
         if (request.isEmpty()) {
             return null;
         }
-        return request.get().getHeader(HttpHeaders.AUTHORIZATION);
+        Object value = request.get().getAttribute(AuthContextFilter.AUTH_CONTEXT_KEY, RequestAttributes.SCOPE_REQUEST);
+        if (value instanceof AuthTokenValidationResponse response) {
+            return response;
+        }
+        return null;
     }
 }

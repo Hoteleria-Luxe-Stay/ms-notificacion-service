@@ -6,12 +6,13 @@ import com.hotel.notificacion.api.dto.PlantillaResponse;
 import com.hotel.notificacion.core.plantilla.model.Plantilla;
 import com.hotel.notificacion.core.plantilla.service.PlantillaService;
 import com.hotel.notificacion.helpers.mappers.PlantillaMapper;
-import com.hotel.notificacion.internal.AuthInternalApi;
 import com.hotel.notificacion.internal.dto.AuthTokenValidationResponse;
+import com.hotel.notificacion.infrastructure.security.AuthContextFilter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.context.request.RequestAttributes;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,20 +21,17 @@ import java.util.Optional;
 public class PlantillasController implements PlantillasApi {
 
     private final PlantillaService plantillaService;
-    private final AuthInternalApi authInternalApi;
     private final NativeWebRequest request;
 
     public PlantillasController(PlantillaService plantillaService,
-                                AuthInternalApi authInternalApi,
                                 NativeWebRequest request) {
         this.plantillaService = plantillaService;
-        this.authInternalApi = authInternalApi;
         this.request = request;
     }
 
     @Override
     public ResponseEntity<List<PlantillaResponse>> listarPlantillas() {
-        AuthTokenValidationResponse auth = resolveAuth();
+        AuthTokenValidationResponse auth = getAuth();
         if (auth == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -47,7 +45,7 @@ public class PlantillasController implements PlantillasApi {
 
     @Override
     public ResponseEntity<PlantillaResponse> crearPlantilla(PlantillaRequest request) {
-        AuthTokenValidationResponse auth = resolveAuth();
+        AuthTokenValidationResponse auth = getAuth();
         if (auth == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -61,7 +59,7 @@ public class PlantillasController implements PlantillasApi {
 
     @Override
     public ResponseEntity<PlantillaResponse> obtenerPlantilla(Long id) {
-        AuthTokenValidationResponse auth = resolveAuth();
+        AuthTokenValidationResponse auth = getAuth();
         if (auth == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -75,7 +73,7 @@ public class PlantillasController implements PlantillasApi {
 
     @Override
     public ResponseEntity<PlantillaResponse> actualizarPlantilla(Long id, PlantillaRequest request) {
-        AuthTokenValidationResponse auth = resolveAuth();
+        AuthTokenValidationResponse auth = getAuth();
         if (auth == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -89,7 +87,7 @@ public class PlantillasController implements PlantillasApi {
 
     @Override
     public ResponseEntity<MessageResponse> eliminarPlantilla(Long id) {
-        AuthTokenValidationResponse auth = resolveAuth();
+        AuthTokenValidationResponse auth = getAuth();
         if (auth == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -108,25 +106,16 @@ public class PlantillasController implements PlantillasApi {
         return Optional.ofNullable(request);
     }
 
-    private AuthTokenValidationResponse resolveAuth() {
-        String authorization = resolveAuthorization();
-        if (authorization == null || !authorization.startsWith("Bearer ")) {
-            return null;
-        }
-        String token = authorization.substring(7);
-        AuthTokenValidationResponse response = authInternalApi.validateToken(token).orElse(null);
-        if (response == null || !Boolean.TRUE.equals(response.getValid())) {
-            return null;
-        }
-        return response;
-    }
-
-    private String resolveAuthorization() {
+    private AuthTokenValidationResponse getAuth() {
         Optional<NativeWebRequest> request = getRequest();
         if (request.isEmpty()) {
             return null;
         }
-        return request.get().getHeader("Authorization");
+        Object value = request.get().getAttribute(AuthContextFilter.AUTH_CONTEXT_KEY, RequestAttributes.SCOPE_REQUEST);
+        if (value instanceof AuthTokenValidationResponse response) {
+            return response;
+        }
+        return null;
     }
 
     private boolean isAdmin(AuthTokenValidationResponse auth) {

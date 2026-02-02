@@ -5,6 +5,7 @@ import com.hotel.notificacion.internal.events.ReservaCancelledEvent;
 import com.hotel.notificacion.internal.events.ReservaConfirmedEvent;
 import com.hotel.notificacion.internal.events.ReservaCreatedEvent;
 import com.hotel.notificacion.internal.events.SendNotificationCommand;
+import com.hotel.notificacion.internal.events.UserLoginEvent;
 import com.hotel.notificacion.internal.events.UserRegisteredEvent;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -74,11 +75,24 @@ public class NotificacionListener {
         if (event.getEmail() == null) {
             return;
         }
-        String asunto = "Bienvenido";
+        String asunto = "Bienvenido por primera vez";
         String contenido = String.format(
-                "Hola %s, tu cuenta fue creada con el rol %s.",
+                "Hola %s, gracias por registrarte por primera vez. Tu aventura comienza ahora. Rol asignado: %s.",
                 safe(event.getUsername()),
                 safe(event.getRole())
+        );
+        notificacionService.crearDesdeEvento("EMAIL", event.getEmail(), asunto, contenido);
+    }
+
+    @RabbitHandler
+    public void handleUserLogin(UserLoginEvent event) {
+        if (event.getEmail() == null) {
+            return;
+        }
+        String asunto = "Bienvenido de nuevo";
+        String contenido = String.format(
+                "Hola %s, nos alegra verte otra vez. Tu habitación favorita te está esperando.",
+                safe(event.getUsername())
         );
         notificacionService.crearDesdeEvento("EMAIL", event.getEmail(), asunto, contenido);
     }

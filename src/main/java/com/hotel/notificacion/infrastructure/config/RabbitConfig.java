@@ -62,6 +62,11 @@ public class RabbitConfig {
     }
 
     @Bean
+    public Binding userLoginBinding(TopicExchange eventsExchange, Queue eventsQueue) {
+        return BindingBuilder.bind(eventsQueue).to(eventsExchange).with("user.login");
+    }
+
+    @Bean
     public Binding commandBinding(DirectExchange commandsExchange, Queue commandQueue) {
         return BindingBuilder.bind(commandQueue).to(commandsExchange).with("notification.send");
     }
