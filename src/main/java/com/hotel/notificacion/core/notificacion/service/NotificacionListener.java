@@ -89,12 +89,18 @@ public class NotificacionListener {
         if (event.getEmail() == null) {
             return;
         }
-        String asunto = "Bienvenido de nuevo";
+        if (event.getRole() != null && "ADMIN".equalsIgnoreCase(event.getRole())) {
+            return;
+        }
+        String fechaActual = java.time.LocalDateTime.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+        String asunto = "Bienvenido nuevamente";
         String contenido = String.format(
-                "Hola %s, nos alegra verte otra vez. Tu habitación favorita te está esperando.",
-                safe(event.getUsername())
+                "Bienvenido nuevamente %s - %s",
+                safe(event.getUsername()),
+                fechaActual
         );
-        notificacionService.crearDesdeEvento("EMAIL", event.getEmail(), asunto, contenido);
+        notificacionService.crearDesdeEventoConUserId("LOGIN", event.getEmail(), asunto, contenido, event.getUserId());
     }
 
     @RabbitListener(queues = RabbitConfig.COMMAND_QUEUE)

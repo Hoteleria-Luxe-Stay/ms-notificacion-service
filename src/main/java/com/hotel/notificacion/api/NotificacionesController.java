@@ -98,7 +98,7 @@ public class NotificacionesController implements NotificacionesApi {
     }
 
     @Override
-    public ResponseEntity<List<NotificacionUsuarioResponse>> listarMisNotificaciones(Boolean leida) {
+    public ResponseEntity<List<NotificacionUsuarioResponse>> listarMisNotificaciones(Boolean leida, String tipo) {
         AuthTokenValidationResponse auth = getAuth();
         if (auth == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -107,7 +107,8 @@ public class NotificacionesController implements NotificacionesApi {
         List<Notificacion> notificaciones = notificacionService.listarPorUsuario(
                 auth != null ? auth.getUserId() : null,
                 auth != null ? auth.getEmail() : null,
-                leida
+                leida,
+                tipo
         );
         return ResponseEntity.ok(notificaciones.stream().map(NotificacionMapper::toUsuarioResponse).toList());
     }

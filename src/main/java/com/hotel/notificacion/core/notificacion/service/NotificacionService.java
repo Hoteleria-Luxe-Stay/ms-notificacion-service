@@ -97,13 +97,19 @@ public class NotificacionService {
         return notificacionRepository.save(notificacion);
     }
 
-    public List<Notificacion> listarPorUsuario(Long userId, String email, Boolean leida) {
+    public List<Notificacion> listarPorUsuario(Long userId, String email, Boolean leida, String tipo) {
         List<Notificacion> notificaciones = userId != null
                 ? notificacionRepository.findByUserId(userId)
                 : notificacionRepository.findByDestinatario(email);
 
+        if (tipo != null && !tipo.isBlank()) {
+            notificaciones = notificaciones.stream()
+                    .filter(n -> tipo.equalsIgnoreCase(n.getTipo()))
+                    .toList();
+        }
+
         if (leida != null) {
-            return notificaciones.stream()
+            notificaciones = notificaciones.stream()
                     .filter(notificacion -> Boolean.TRUE.equals(notificacion.getLeida()) == leida)
                     .toList();
         }
@@ -120,13 +126,17 @@ public class NotificacionService {
     }
 
     public void marcarTodasComoLeidas(Long userId, String email) {
-        List<Notificacion> notificaciones = listarPorUsuario(userId, email, null);
+        List<Notificacion> notificaciones = listarPorUsuario(userId, email, null, null);
         notificaciones.forEach(notificacion -> notificacion.setLeida(true));
         notificacionRepository.saveAll(notificaciones);
     }
 
     public Notificacion crearDesdeEvento(String tipo, String destinatario, String asunto, String contenido) {
-        Notificacion notificacion = crearNotificacionBase(tipo, destinatario, asunto, contenido, null);
+        return crearDesdeEventoConUserId(tipo, destinatario, asunto, contenido, null);
+    }
+
+    public Notificacion crearDesdeEventoConUserId(String tipo, String destinatario, String asunto, String contenido, Long userId) {
+        Notificacion notificacion = crearNotificacionBase(tipo, destinatario, asunto, contenido, userId);
         notificacion = notificacionRepository.save(notificacion);
         procesarEnvio(notificacion);
         return notificacionRepository.save(notificacion);

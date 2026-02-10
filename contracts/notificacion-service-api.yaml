@@ -139,6 +139,11 @@ paths:
           in: query
           schema:
             type: boolean
+        - name: tipo
+          in: query
+          schema:
+            type: string
+          description: Filtrar por tipo (EMAIL, LOGIN, etc.)
       responses:
         '200':
           description: Lista de notificaciones del usuario

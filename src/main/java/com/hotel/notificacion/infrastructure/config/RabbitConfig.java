@@ -9,6 +9,10 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.amqp.support.converter.DefaultJackson2JavaTypeMapper;
+
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -73,7 +77,34 @@ public class RabbitConfig {
 
     @Bean
     public MessageConverter jsonMessageConverter() {
-        return new Jackson2JsonMessageConverter();
+        Jackson2JsonMessageConverter converter = new Jackson2JsonMessageConverter();
+        DefaultJackson2JavaTypeMapper typeMapper = new DefaultJackson2JavaTypeMapper();
+        typeMapper.setTrustedPackages("com.hotel.notificacion.internal.events", "com.hotel.auth.infrastructure.events");
+
+        Map<String, Class<?>> idClassMapping = new HashMap<>();
+        idClassMapping.put(
+                "com.hotel.auth.infrastructure.events.UserLoginEvent",
+                com.hotel.notificacion.internal.events.UserLoginEvent.class
+        );
+        idClassMapping.put(
+                "com.hotel.auth.infrastructure.events.UserRegisteredEvent",
+                com.hotel.notificacion.internal.events.UserRegisteredEvent.class
+        );
+        idClassMapping.put(
+                "com.hotel.reserva.infrastructure.events.ReservaCreatedEvent",
+                com.hotel.notificacion.internal.events.ReservaCreatedEvent.class
+        );
+        idClassMapping.put(
+                "com.hotel.reserva.infrastructure.events.ReservaConfirmedEvent",
+                com.hotel.notificacion.internal.events.ReservaConfirmedEvent.class
+        );
+        idClassMapping.put(
+                "com.hotel.reserva.infrastructure.events.ReservaCancelledEvent",
+                com.hotel.notificacion.internal.events.ReservaCancelledEvent.class
+        );
+        typeMapper.setIdClassMapping(idClassMapping);
+        converter.setJavaTypeMapper(typeMapper);
+        return converter;
     }
 
     @Bean
