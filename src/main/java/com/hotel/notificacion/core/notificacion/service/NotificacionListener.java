@@ -5,6 +5,7 @@ import com.hotel.notificacion.internal.events.ReservaCancelledEvent;
 import com.hotel.notificacion.internal.events.ReservaConfirmedEvent;
 import com.hotel.notificacion.internal.events.ReservaCreatedEvent;
 import com.hotel.notificacion.internal.events.SendNotificationCommand;
+import com.hotel.notificacion.internal.events.PasswordResetEvent;
 import com.hotel.notificacion.internal.events.UserLoginEvent;
 import com.hotel.notificacion.internal.events.UserRegisteredEvent;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
@@ -110,6 +111,25 @@ public class NotificacionListener {
                 fechaActual
         );
         notificacionService.crearDesdeEventoConUserId("LOGIN", event.getEmail(), asunto, contenido, event.getUserId());
+    }
+
+    @RabbitHandler
+    public void handlePasswordReset(PasswordResetEvent event) {
+        if (event.getEmail() == null) {
+            return;
+        }
+        String asunto = "Restablece tu contraseña";
+        String fechaActual = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+        String contenido = notificacionService.renderTemplate(
+                "templates/password-reset-email.html",
+                Map.of(
+                        "nombre", safe(event.getUsername()),
+                        "email", safe(event.getEmail()),
+                        "codigo", safe(event.getCode()),
+                        "fecha", fechaActual
+                )
+        );
+        notificacionService.crearDesdeEvento("EMAIL", event.getEmail(), asunto, contenido);
     }
 
     @RabbitListener(queues = RabbitConfig.COMMAND_QUEUE)

@@ -1,9 +1,11 @@
 package com.hotel.notificacion.core.notificacion.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 
 import java.time.LocalDateTime;
 
@@ -17,6 +19,8 @@ public class Notificacion {
     private String tipo;
     private String destinatario;
     private String asunto;
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
     private String contenido;
     private String estado;
     private LocalDateTime fechaCreacion;

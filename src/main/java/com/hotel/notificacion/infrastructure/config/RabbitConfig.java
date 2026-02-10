@@ -71,6 +71,11 @@ public class RabbitConfig {
     }
 
     @Bean
+    public Binding userPasswordResetBinding(TopicExchange eventsExchange, Queue eventsQueue) {
+        return BindingBuilder.bind(eventsQueue).to(eventsExchange).with("user.password.reset");
+    }
+
+    @Bean
     public Binding commandBinding(DirectExchange commandsExchange, Queue commandQueue) {
         return BindingBuilder.bind(commandQueue).to(commandsExchange).with("notification.send");
     }
@@ -89,6 +94,10 @@ public class RabbitConfig {
         idClassMapping.put(
                 "com.hotel.auth.infrastructure.events.UserRegisteredEvent",
                 com.hotel.notificacion.internal.events.UserRegisteredEvent.class
+        );
+        idClassMapping.put(
+                "com.hotel.auth.infrastructure.events.PasswordResetEvent",
+                com.hotel.notificacion.internal.events.PasswordResetEvent.class
         );
         idClassMapping.put(
                 "com.hotel.reserva.infrastructure.events.ReservaCreatedEvent",
