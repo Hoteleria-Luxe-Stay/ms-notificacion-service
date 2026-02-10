@@ -38,7 +38,7 @@ paths:
           in: query
           schema:
             type: string
-            enum: [EMAIL, SMS, PUSH]
+            enum: [EMAIL, SMS, PUSH, LOGIN]
         - name: estado
           in: query
           schema:
@@ -367,7 +367,7 @@ components:
           format: int64
         tipo:
           type: string
-          enum: [EMAIL, SMS, PUSH]
+          enum: [EMAIL, SMS, PUSH, LOGIN]
         destinatario:
           type: string
         asunto:
@@ -412,7 +412,7 @@ components:
       properties:
         tipo:
           type: string
-          enum: [EMAIL, SMS, PUSH]
+          enum: [EMAIL, SMS, PUSH, LOGIN]
         destinatario:
           type: string
           description: Email, numero de telefono o ID de usuario
@@ -450,7 +450,7 @@ components:
           description: Soporta variables como {{nombre}}, {{fecha}}
         tipo:
           type: string
-          enum: [EMAIL, SMS, PUSH]
+          enum: [EMAIL, SMS, PUSH, LOGIN]
         activa:
           type: boolean
           default: true

@@ -8,12 +8,11 @@ import com.hotel.notificacion.core.plantilla.model.Plantilla;
 import com.hotel.notificacion.core.plantilla.repository.PlantillaRepository;
 import com.hotel.notificacion.helpers.exceptions.EntityNotFoundException;
 import com.hotel.notificacion.helpers.exceptions.ValidationException;
+import com.klab.email.EmailSender;
 import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.MailException;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -31,17 +30,17 @@ public class NotificacionService {
 
     private final NotificacionRepository notificacionRepository;
     private final PlantillaRepository plantillaRepository;
-    private final JavaMailSender mailSender;
+    private final EmailSender emailSender;
 
-    @Value("${spring.mail.username:}")
+    @Value("${klab.mail.from-email:}")
     private String mailFrom;
 
     public NotificacionService(NotificacionRepository notificacionRepository,
                                PlantillaRepository plantillaRepository,
-                               JavaMailSender mailSender) {
+                               EmailSender emailSender) {
         this.notificacionRepository = notificacionRepository;
         this.plantillaRepository = plantillaRepository;
-        this.mailSender = mailSender;
+        this.emailSender = emailSender;
     }
 
     public List<Notificacion> listar(String tipo, String estado, LocalDate fechaDesde, LocalDate fechaHasta) {
@@ -153,6 +152,16 @@ public class NotificacionService {
         return notificacionRepository.save(notificacion);
     }
 
+    public String renderTemplate(String templatePath, Map<String, String> variables) {
+        try {
+            ClassPathResource resource = new ClassPathResource(templatePath);
+            String template = new String(resource.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+            return aplicarVariables(template, variables);
+        } catch (Exception e) {
+            throw new MailException("TEMPLATE_NOT_FOUND") {};
+        }
+    }
+
     private Notificacion crearNotificacionBase(String tipo, String destinatario, String asunto, String contenido, Long userId) {
         Notificacion notificacion = new Notificacion();
         notificacion.setTipo(tipo);
@@ -191,14 +200,11 @@ public class NotificacionService {
         if (mailFrom == null || mailFrom.isBlank()) {
             throw new MailException("MAIL_CONFIG_MISSING") {};
         }
-
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
-        helper.setTo(destinatario);
-        helper.setSubject(asunto);
-        helper.setText(contenido, false);
-        helper.setFrom(mailFrom);
-        mailSender.send(message);
+        try {
+            emailSender.sendEmail(contenido, destinatario, asunto, null);
+        } catch (Exception e) {
+            throw new MailException(e.getMessage()) {};
+        }
     }
 
     private String aplicarVariables(String template, Map<String, String> variables) {

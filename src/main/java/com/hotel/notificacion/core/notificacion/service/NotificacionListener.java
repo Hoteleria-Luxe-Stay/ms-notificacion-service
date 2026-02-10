@@ -11,6 +11,10 @@ import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Map;
+
 @Component
 @RabbitListener(queues = RabbitConfig.EVENTS_QUEUE)
 public class NotificacionListener {
@@ -75,11 +79,16 @@ public class NotificacionListener {
         if (event.getEmail() == null) {
             return;
         }
-        String asunto = "Bienvenido por primera vez";
-        String contenido = String.format(
-                "Hola %s, gracias por registrarte por primera vez. Tu aventura comienza ahora. Rol asignado: %s.",
-                safe(event.getUsername()),
-                safe(event.getRole())
+        String asunto = "Bienvenido a LuxeStay";
+        String fechaActual = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+        String contenido = notificacionService.renderTemplate(
+                "templates/welcome-email.html",
+                Map.of(
+                        "nombre", safe(event.getUsername()),
+                        "email", safe(event.getEmail()),
+                        "rol", safe(event.getRole()),
+                        "fecha", fechaActual
+                )
         );
         notificacionService.crearDesdeEvento("EMAIL", event.getEmail(), asunto, contenido);
     }
@@ -92,8 +101,8 @@ public class NotificacionListener {
         if (event.getRole() != null && "ADMIN".equalsIgnoreCase(event.getRole())) {
             return;
         }
-        String fechaActual = java.time.LocalDateTime.now()
-                .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+        String fechaActual = LocalDateTime.now()
+                .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
         String asunto = "Bienvenido nuevamente";
         String contenido = String.format(
                 "Bienvenido nuevamente %s - %s",
