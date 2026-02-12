@@ -400,6 +400,9 @@ components:
           type: string
         tipo:
           type: string
+        eventType:
+          type: string
+          description: Tipo de evento (LOGIN, CONFIRMED, CANCELLED_ADMIN, etc.)
         leida:
           type: boolean
         fechaCreacion:

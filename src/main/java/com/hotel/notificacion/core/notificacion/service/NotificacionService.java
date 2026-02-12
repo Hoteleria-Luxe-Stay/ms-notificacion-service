@@ -135,7 +135,11 @@ public class NotificacionService {
     }
 
     public Notificacion crearDesdeEventoConUserId(String tipo, String destinatario, String asunto, String contenido, Long userId) {
-        Notificacion notificacion = crearNotificacionBase(tipo, destinatario, asunto, contenido, userId);
+        return crearDesdeEventoConUserIdYEventType(tipo, destinatario, asunto, contenido, userId, null);
+    }
+
+    public Notificacion crearDesdeEventoConUserIdYEventType(String tipo, String destinatario, String asunto, String contenido, Long userId, String eventType) {
+        Notificacion notificacion = crearNotificacionBase(tipo, destinatario, asunto, contenido, userId, eventType);
         notificacion = notificacionRepository.save(notificacion);
         procesarEnvio(notificacion);
         return notificacionRepository.save(notificacion);
@@ -163,17 +167,37 @@ public class NotificacionService {
     }
 
     private Notificacion crearNotificacionBase(String tipo, String destinatario, String asunto, String contenido, Long userId) {
+        return crearNotificacionBase(tipo, destinatario, asunto, contenido, userId, null);
+    }
+
+    private Notificacion crearNotificacionBase(String tipo, String destinatario, String asunto, String contenido, Long userId, String eventType) {
         Notificacion notificacion = new Notificacion();
         notificacion.setTipo(tipo);
+        notificacion.setEventType(eventType);
         notificacion.setDestinatario(destinatario);
         notificacion.setAsunto(asunto);
         notificacion.setContenido(contenido);
+        notificacion.setMensaje(generarMensajeNotificacion(eventType));
         notificacion.setEstado(ESTADO_PENDIENTE);
         notificacion.setFechaCreacion(LocalDateTime.now());
         notificacion.setIntentos(0);
         notificacion.setUserId(userId);
         notificacion.setLeida(false);
         return notificacion;
+    }
+
+    private String generarMensajeNotificacion(String eventType) {
+        if (eventType == null) {
+            return "Nueva notificación";
+        }
+        return switch (eventType.toUpperCase()) {
+            case "LOGIN" -> "Inicio de sesión exitoso";
+            case "CONFIRMED" -> "Tu reserva fue confirmada";
+            case "CREATED" -> "Tu reserva fue creada";
+            case "CANCELLED_ADMIN" -> "Tu reserva fue cancelada por el administrador";
+            case "CANCELLED" -> "Tu reserva fue cancelada";
+            default -> "Nueva notificación";
+        };
     }
 
     private void procesarEnvio(Notificacion notificacion) {

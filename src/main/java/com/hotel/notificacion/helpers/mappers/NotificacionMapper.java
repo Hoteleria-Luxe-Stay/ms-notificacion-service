@@ -43,8 +43,9 @@ public class NotificacionMapper {
         NotificacionUsuarioResponse response = new NotificacionUsuarioResponse();
         response.setId(notificacion.getId());
         response.setTitulo(notificacion.getAsunto());
-        response.setMensaje(notificacion.getContenido());
+        response.setMensaje(notificacion.getMensaje() != null ? notificacion.getMensaje() : notificacion.getContenido());
         response.setTipo(notificacion.getTipo());
+        response.setEventType(notificacion.getEventType());
         response.setLeida(Boolean.TRUE.equals(notificacion.getLeida()));
         if (notificacion.getFechaCreacion() != null) {
             response.setFechaCreacion(notificacion.getFechaCreacion().atOffset(ZoneOffset.UTC));

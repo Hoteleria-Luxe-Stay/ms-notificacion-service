@@ -141,7 +141,7 @@ public class NotificacionListener {
                 safe(event.getUsername()),
                 fechaActual
         );
-        notificacionService.crearDesdeEventoConUserId("LOGIN", event.getEmail(), asunto, contenido, event.getUserId());
+        notificacionService.crearDesdeEventoConUserIdYEventType("LOGIN", event.getEmail(), asunto, contenido, event.getUserId(), "LOGIN");
     }
 
     @RabbitHandler

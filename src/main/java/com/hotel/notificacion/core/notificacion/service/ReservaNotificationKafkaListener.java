@@ -1,6 +1,5 @@
 package com.hotel.notificacion.core.notificacion.service;
 
-import com.hotel.notificacion.infrastructure.client.UserClient;
 import com.hotel.notificacion.internal.events.ReservaNotificationEvent;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
@@ -13,11 +12,9 @@ import java.util.stream.Collectors;
 public class ReservaNotificationKafkaListener {
 
     private final NotificacionService notificacionService;
-    private final UserClient userClient;
 
-    public ReservaNotificationKafkaListener(NotificacionService notificacionService, UserClient userClient) {
+    public ReservaNotificationKafkaListener(NotificacionService notificacionService) {
         this.notificacionService = notificacionService;
-        this.userClient = userClient;
     }
 
     @KafkaListener(topics = "${app.kafka.topics.reserva-notifications}")
@@ -30,11 +27,14 @@ public class ReservaNotificationKafkaListener {
         String templatePath = getTemplatePath(event);
         String contenido = buildHtmlContent(event, templatePath);
 
-        // Resolver userId desde email del cliente
-        Long userId = userClient.getUserIdByEmail(event.getClienteEmail());
+        // Usar userId directamente del evento (propagado desde ms-reserva)
+        Long userId = event.getUserId();
 
-        // Crear notificación con userId asignado
-        notificacionService.crearDesdeEventoConUserId("EMAIL", event.getClienteEmail(), asunto, contenido, userId);
+        // Obtener eventType
+        String eventType = event.getEventType();
+
+        // Crear notificación con userId y eventType asignados
+        notificacionService.crearDesdeEventoConUserIdYEventType("EMAIL", event.getClienteEmail(), asunto, contenido, userId, eventType);
     }
 
     private String buildSubject(ReservaNotificationEvent event) {
