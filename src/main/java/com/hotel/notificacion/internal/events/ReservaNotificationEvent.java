@@ -6,6 +6,7 @@ public class ReservaNotificationEvent {
 
     private String eventType;
     private Long reservaId;
+    private Long userId;
     private String clienteNombre;
     private String clienteEmail;
     private String hotelNombre;
@@ -35,6 +36,14 @@ public class ReservaNotificationEvent {
 
     public void setReservaId(Long reservaId) {
         this.reservaId = reservaId;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public String getClienteNombre() {

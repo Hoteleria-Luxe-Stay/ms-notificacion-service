@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reserva Cancelada - LuxeStay</title>
+</head>
+
+<body style="margin:0;padding:0;background:#0b1220;font-family:Arial, Helvetica, sans-serif;-webkit-font-smoothing:antialiased;">
+<!-- Preheader -->
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+  Tu reserva #{{reservaId}} en {{hotelNombre}} ha sido cancelada.
+</div>
+
+<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#0b1220;padding:28px 0;">
+  <tr>
+    <td align="center" style="padding:0 12px;">
+      <!-- Contenedor -->
+      <table width="640" cellpadding="0" cellspacing="0" role="presentation" style="width:640px;max-width:640px;background:#0f172a;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);box-shadow:0 16px 40px rgba(0,0,0,0.35);">
+        <!-- Header -->
+        <tr>
+          <td style="padding:30px 34px;background:#111827;">
+            <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+              <tr>
+                <td align="left" style="vertical-align:middle;">
+                  <div style="display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.35);color:#f59e0b;font-size:12px;letter-spacing:0.4px;">
+                    LUXESTAY · SISTEMA DE RESERVAS
+                  </div>
+                  <h1 style="margin:14px 0 6px;font-size:24px;line-height:1.25;color:#e5e7eb;font-weight:700;">
+                    Reserva Cancelada
+                  </h1>
+                  <p style="margin:0;font-size:14px;line-height:1.6;color:#a7b0c0;">
+                    Información sobre la cancelación de tu reserva
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Separador -->
+        <tr>
+          <td style="height:1px;background:rgba(255,255,255,0.08);"></td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:30px 34px;color:#e5e7eb;">
+            <p style="margin:0 0 14px;font-size:16px;line-height:1.7;color:#e5e7eb;">
+              Hola <strong style="color:#ffffff;">{{clienteNombre}}</strong>,
+            </p>
+
+            <p style="margin:0 0 14px;font-size:14px;line-height:1.75;color:#cbd5e1;">
+              Lamentamos informarte que tu reserva ha sido <strong style="color:#ef4444;">cancelada</strong>.
+              A continuación, encontrarás los detalles de la cancelación.
+            </p>
+
+            <!-- Estado -->
+            <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin:18px 0 0;">
+              <tr>
+                <td align="center" style="padding:16px;background:rgba(239,68,68,0.1);border-radius:12px;border:1px solid rgba(239,68,68,0.3);">
+                  <div style="display:inline-block;padding:8px 14px;border-radius:999px;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.4);color:#ef4444;font-size:13px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">
+                    ✕ {{estado}}
+                  </div>
+                  <p style="margin:10px 0 0;font-size:13px;color:#cbd5e1;">
+                    Reserva #{{reservaId}}
+                  </p>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Detalles de la Cancelación -->
+            <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin:24px 0 0;background:#0b1220;border-radius:14px;border:1px solid rgba(239,68,68,0.2);">
+              <tr>
+                <td style="padding:18px 18px;">
+                  <p style="margin:0 0 10px;font-size:12px;color:#94a3b8;letter-spacing:0.3px;text-transform:uppercase;">
+                    Información de Cancelación
+                  </p>
+
+                  <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                    <tr>
+                      <td style="padding:8px 0;border-top:1px solid rgba(255,255,255,0.06);color:#cbd5e1;font-size:14px;">
+                        <strong style="color:#e5e7eb;">Fecha de cancelación:</strong>
+                        <span style="color:#cbd5e1;">{{fechaCancelacion}}</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:8px 0;border-top:1px solid rgba(255,255,255,0.06);color:#cbd5e1;font-size:14px;">
+                        <strong style="color:#e5e7eb;">Motivo:</strong>
+                        <span style="color:#cbd5e1;">{{motivoCancelacion}}</span>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Detalles del Hotel -->
+            <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin:18px 0 0;background:#0b1220;border-radius:14px;border:1px solid rgba(255,255,255,0.08);">
+              <tr>
+                <td style="padding:18px 18px;">
+                  <p style="margin:0 0 10px;font-size:12px;color:#94a3b8;letter-spacing:0.3px;text-transform:uppercase;">
+                    Detalles de la Reserva Cancelada
+                  </p>
+
+                  <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                    <tr>
+                      <td style="padding:8px 0;border-top:1px solid rgba(255,255,255,0.06);color:#cbd5e1;font-size:14px;">
+                        <strong style="color:#e5e7eb;">Hotel:</strong>
+                        <span style="color:#cbd5e1;">{{hotelNombre}}</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:8px 0;border-top:1px solid rgba(255,255,255,0.06);color:#cbd5e1;font-size:14px;">
+                        <strong style="color:#e5e7eb;">Dirección:</strong>
+                        <span style="color:#cbd5e1;">{{hotelDireccion}}</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:8px 0;border-top:1px solid rgba(255,255,255,0.06);color:#cbd5e1;font-size:14px;">
+                        <strong style="color:#e5e7eb;">Check-in:</strong>
+                        <span style="color:#cbd5e1;">{{fechaInicio}}</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:8px 0;border-top:1px solid rgba(255,255,255,0.06);color:#cbd5e1;font-size:14px;">
+                        <strong style="color:#e5e7eb;">Check-out:</strong>
+                        <span style="color:#cbd5e1;">{{fechaFin}}</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:8px 0;border-top:1px solid rgba(255,255,255,0.06);color:#cbd5e1;font-size:14px;">
+                        <strong style="color:#e5e7eb;">Habitaciones:</strong>
+                        <span style="color:#cbd5e1;">{{habitaciones}}</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:12px 0;border-top:1px solid rgba(255,255,255,0.06);">
+                        <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                          <tr>
+                            <td style="color:#e5e7eb;font-size:16px;font-weight:700;">
+                              Monto:
+                            </td>
+                            <td align="right" style="color:#94a3b8;font-size:20px;font-weight:700;text-decoration:line-through;">
+                              S/. {{total}}
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Información de Reembolso -->
+            <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin:20px 0 0;background:rgba(59,130,246,0.08);border-radius:12px;border:1px solid rgba(59,130,246,0.2);padding:16px;">
+              <tr>
+                <td style="color:#cbd5e1;font-size:13px;line-height:1.7;">
+                  <strong style="color:#60a5fa;display:block;margin-bottom:6px;">💳 Información de reembolso:</strong>
+                  Si corresponde un reembolso según nuestras políticas de cancelación,
+                  este se procesará en los próximos 5-7 días hábiles al método de pago original.
+                </td>
+              </tr>
+            </table>
+
+            <p style="margin:20px 0 0;font-size:14px;line-height:1.75;color:#cbd5e1;">
+              Si tienes alguna pregunta sobre esta cancelación o deseas realizar una nueva reserva,
+              estamos aquí para ayudarte.
+            </p>
+
+            <p style="margin:16px 0 0;font-size:12px;line-height:1.7;color:#94a3b8;">
+              Esperamos poder atenderte en una próxima oportunidad.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="padding:18px 34px;background:#0b1220;border-top:1px solid rgba(255,255,255,0.08);">
+            <p style="margin:0 0 8px;font-size:12px;line-height:1.6;color:#94a3b8;">
+              Este mensaje fue enviado automáticamente por LuxeStay.
+            </p>
+
+            <p style="margin:0;font-size:12px;line-height:1.6;color:#64748b;">
+              © <span style="color:#94a3b8;">LuxeStay</span>. Todos los derechos reservados.
+              Queda prohibida la reproducción total o parcial de este mensaje y/o su contenido sin autorización.
+            </p>
+
+            <p style="margin:10px 0 0;font-size:12px;line-height:1.6;color:#64748b;">
+              Si no solicitaste esta cancelación, contáctanos urgentemente.
+            </p>
+          </td>
+        </tr>
+      </table>
+
+      <!-- Nota inferior -->
+      <table width="640" cellpadding="0" cellspacing="0" role="presentation" style="width:640px;max-width:640px;">
+        <tr>
+          <td style="padding:14px 10px 0;color:#475569;font-size:11px;line-height:1.6;text-align:center;">
+            LuxeStay · Sistema de reservas de hoteles
+          </td>
+        </tr>
+      </table>
+
+    </td>
+  </tr>
+</table>
+</body>
+</html>

@@ -4,6 +4,8 @@ import com.hotel.notificacion.internal.events.ReservaNotificationEvent;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
@@ -22,8 +24,17 @@ public class ReservaNotificationKafkaListener {
         }
 
         String asunto = buildSubject(event);
-        String contenido = buildContent(event);
-        notificacionService.crearDesdeEvento("EMAIL", event.getClienteEmail(), asunto, contenido);
+        String templatePath = getTemplatePath(event);
+        String contenido = buildHtmlContent(event, templatePath);
+
+        // Usar userId directamente del evento (propagado desde ms-reserva)
+        Long userId = event.getUserId();
+
+        // Obtener eventType
+        String eventType = event.getEventType();
+
+        // Crear notificación con userId y eventType asignados
+        notificacionService.crearDesdeEventoConUserIdYEventType("EMAIL", event.getClienteEmail(), asunto, contenido, userId, eventType);
     }
 
     private String buildSubject(ReservaNotificationEvent event) {
@@ -39,39 +50,57 @@ public class ReservaNotificationKafkaListener {
         return "Reserva creada";
     }
 
-    private String buildContent(ReservaNotificationEvent event) {
-        String habitaciones = "";
-        if (event.getHabitaciones() != null && !event.getHabitaciones().isEmpty()) {
-            habitaciones = event.getHabitaciones().stream()
-                    .map(habitacion -> String.format("#%d (S/. %.2f)",
-                            habitacion.getHabitacionId(),
-                            habitacion.getPrecioNoche() != null ? habitacion.getPrecioNoche() : 0.0))
-                    .collect(Collectors.joining(", "));
+    private String getTemplatePath(ReservaNotificationEvent event) {
+        if ("CONFIRMED".equalsIgnoreCase(event.getEventType())) {
+            return "templates/reserva-confirmed-email.html";
+        }
+        if ("CANCELLED_ADMIN".equalsIgnoreCase(event.getEventType()) ||
+            "CANCELLED".equalsIgnoreCase(event.getEventType())) {
+            return "templates/reserva-cancelled-email.html";
+        }
+        return "templates/reserva-created-email.html";
+    }
+
+    private String buildHtmlContent(ReservaNotificationEvent event, String templatePath) {
+        Map<String, String> variables = new HashMap<>();
+
+        // Variables comunes para todos los templates
+        variables.put("clienteNombre", safe(event.getClienteNombre()));
+        variables.put("reservaId", String.valueOf(event.getReservaId()));
+        variables.put("estado", safe(event.getEstado()));
+        variables.put("hotelNombre", safe(event.getHotelNombre()));
+        variables.put("hotelDireccion", safe(event.getHotelDireccion()));
+        variables.put("fechaInicio", safe(event.getFechaInicio()));
+        variables.put("fechaFin", safe(event.getFechaFin()));
+        variables.put("total", formatTotal(event.getTotal()));
+        variables.put("habitaciones", formatHabitaciones(event));
+
+        // Variables específicas para cancelaciones
+        if ("CANCELLED_ADMIN".equalsIgnoreCase(event.getEventType()) ||
+            "CANCELLED".equalsIgnoreCase(event.getEventType())) {
+            variables.put("fechaCancelacion", safe(event.getFechaCancelacion()));
+            variables.put("motivoCancelacion", safe(event.getMotivoCancelacion()));
         }
 
-        String detalleHabitaciones = habitaciones.isBlank() ? "" : " Habitaciones: " + habitaciones + ".";
-        String detalleCancelacion = "";
-        if (event.getFechaCancelacion() != null || event.getMotivoCancelacion() != null) {
-            String fecha = safe(event.getFechaCancelacion());
-            String motivo = safe(event.getMotivoCancelacion());
-            detalleCancelacion = String.format(" Cancelacion: %s. Motivo: %s.",
-                    fecha.isBlank() ? "-" : fecha,
-                    motivo.isBlank() ? "-" : motivo);
-        }
+        return notificacionService.renderTemplate(templatePath, variables);
+    }
 
-        return String.format(
-                "Hola %s, tu reserva #%d está %s. Hotel: %s. Dirección: %s. Fechas: %s a %s. Total: S/. %.2f.%s%s",
-                safe(event.getClienteNombre()),
-                event.getReservaId(),
-                safe(event.getEstado()),
-                safe(event.getHotelNombre()),
-                safe(event.getHotelDireccion()),
-                safe(event.getFechaInicio()),
-                safe(event.getFechaFin()),
-                event.getTotal() != null ? event.getTotal() : 0.0,
-                detalleHabitaciones,
-                detalleCancelacion
-        );
+    private String formatHabitaciones(ReservaNotificationEvent event) {
+        if (event.getHabitaciones() == null || event.getHabitaciones().isEmpty()) {
+            return "-";
+        }
+        return event.getHabitaciones().stream()
+                .map(habitacion -> String.format("#%d (S/. %.2f)",
+                        habitacion.getHabitacionId(),
+                        habitacion.getPrecioNoche() != null ? habitacion.getPrecioNoche() : 0.0))
+                .collect(Collectors.joining(", "));
+    }
+
+    private String formatTotal(Double total) {
+        if (total == null) {
+            return "0.00";
+        }
+        return String.format("%.2f", total);
     }
 
     private String safe(String value) {

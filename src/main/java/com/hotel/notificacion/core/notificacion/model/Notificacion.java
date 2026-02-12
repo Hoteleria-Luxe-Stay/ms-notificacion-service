@@ -17,11 +17,13 @@ public class Notificacion {
     private Long id;
 
     private String tipo;
+    private String eventType;
     private String destinatario;
     private String asunto;
     @Lob
     @Column(columnDefinition = "LONGTEXT")
     private String contenido;
+    private String mensaje;
     private String estado;
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaEnvio;
@@ -46,6 +48,14 @@ public class Notificacion {
         this.tipo = tipo;
     }
 
+    public String getEventType() {
+        return eventType;
+    }
+
+    public void setEventType(String eventType) {
+        this.eventType = eventType;
+    }
+
     public String getDestinatario() {
         return destinatario;
     }
@@ -68,6 +78,14 @@ public class Notificacion {
 
     public void setContenido(String contenido) {
         this.contenido = contenido;
+    }
+
+    public String getMensaje() {
+        return mensaje;
+    }
+
+    public void setMensaje(String mensaje) {
+        this.mensaje = mensaje;
     }
 
     public String getEstado() {
