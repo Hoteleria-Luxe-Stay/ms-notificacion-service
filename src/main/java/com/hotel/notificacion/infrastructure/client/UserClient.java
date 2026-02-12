@@ -32,7 +32,7 @@ public class UserClient {
         }
 
         try {
-            String url = String.format("http://auth-service/internal/users/by-email?email=%s", email);
+            String url = String.format("http://auth-service/api/v1/internal/users/by-email?email=%s", email);
             Map<String, Object> response = restTemplate.getForObject(url, Map.class);
 
             if (response != null && response.containsKey("userId")) {

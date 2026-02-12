@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.Map;
 
 @Component
@@ -32,13 +33,21 @@ public class NotificacionListener {
             return;
         }
         String asunto = "Reserva creada";
-        String contenido = String.format(
-                "Hola %s, tu reserva #%d en %s fue creada para %s - %s.",
-                safe(event.getClienteNombre()),
-                event.getReservaId(),
-                safe(event.getHotelNombre()),
-                safe(event.getFechaInicio()),
-                safe(event.getFechaFin())
+
+        Map<String, String> variables = new HashMap<>();
+        variables.put("clienteNombre", safe(event.getClienteNombre()));
+        variables.put("reservaId", String.valueOf(event.getReservaId()));
+        variables.put("estado", "PENDIENTE");
+        variables.put("hotelNombre", safe(event.getHotelNombre()));
+        variables.put("hotelDireccion", "-");
+        variables.put("fechaInicio", safe(event.getFechaInicio()));
+        variables.put("fechaFin", safe(event.getFechaFin()));
+        variables.put("total", "0.00");
+        variables.put("habitaciones", "-");
+
+        String contenido = notificacionService.renderTemplate(
+                "templates/reserva-created-email.html",
+                variables
         );
         notificacionService.crearDesdeEvento("EMAIL", event.getClienteEmail(), asunto, contenido);
     }
@@ -49,12 +58,21 @@ public class NotificacionListener {
             return;
         }
         String asunto = "Reserva confirmada";
-        String contenido = String.format(
-                "Hola %s, tu reserva #%d en %s fue confirmada. Codigo: %s.",
-                safe(event.getClienteNombre()),
-                event.getReservaId(),
-                safe(event.getHotelNombre()),
-                safe(event.getCodigoConfirmacion())
+
+        Map<String, String> variables = new HashMap<>();
+        variables.put("clienteNombre", safe(event.getClienteNombre()));
+        variables.put("reservaId", String.valueOf(event.getReservaId()));
+        variables.put("estado", "CONFIRMADA");
+        variables.put("hotelNombre", safe(event.getHotelNombre()));
+        variables.put("hotelDireccion", "-");
+        variables.put("fechaInicio", safe(event.getFechaInicio()));
+        variables.put("fechaFin", safe(event.getFechaFin()));
+        variables.put("total", "0.00");
+        variables.put("habitaciones", "-");
+
+        String contenido = notificacionService.renderTemplate(
+                "templates/reserva-confirmed-email.html",
+                variables
         );
         notificacionService.crearDesdeEvento("EMAIL", event.getClienteEmail(), asunto, contenido);
     }
@@ -65,12 +83,23 @@ public class NotificacionListener {
             return;
         }
         String asunto = "Reserva cancelada";
-        String contenido = String.format(
-                "Hola %s, tu reserva #%d en %s fue cancelada. %s",
-                safe(event.getClienteNombre()),
-                event.getReservaId(),
-                safe(event.getHotelNombre()),
-                safe(event.getMotivo())
+
+        Map<String, String> variables = new HashMap<>();
+        variables.put("clienteNombre", safe(event.getClienteNombre()));
+        variables.put("reservaId", String.valueOf(event.getReservaId()));
+        variables.put("estado", "CANCELADA");
+        variables.put("hotelNombre", safe(event.getHotelNombre()));
+        variables.put("hotelDireccion", "-");
+        variables.put("fechaInicio", "-");
+        variables.put("fechaFin", "-");
+        variables.put("total", "0.00");
+        variables.put("habitaciones", "-");
+        variables.put("fechaCancelacion", "-");
+        variables.put("motivoCancelacion", safe(event.getMotivo()));
+
+        String contenido = notificacionService.renderTemplate(
+                "templates/reserva-cancelled-email.html",
+                variables
         );
         notificacionService.crearDesdeEvento("EMAIL", event.getClienteEmail(), asunto, contenido);
     }
@@ -82,14 +111,16 @@ public class NotificacionListener {
         }
         String asunto = "Bienvenido a LuxeStay";
         String fechaActual = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+
+        Map<String, String> variables = new HashMap<>();
+        variables.put("nombre", safe(event.getUsername()));
+        variables.put("email", safe(event.getEmail()));
+        variables.put("rol", safe(event.getRole()));
+        variables.put("fecha", fechaActual);
+
         String contenido = notificacionService.renderTemplate(
                 "templates/welcome-email.html",
-                Map.of(
-                        "nombre", safe(event.getUsername()),
-                        "email", safe(event.getEmail()),
-                        "rol", safe(event.getRole()),
-                        "fecha", fechaActual
-                )
+                variables
         );
         notificacionService.crearDesdeEvento("EMAIL", event.getEmail(), asunto, contenido);
     }
@@ -120,14 +151,16 @@ public class NotificacionListener {
         }
         String asunto = "Restablece tu contraseña";
         String fechaActual = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+
+        Map<String, String> variables = new HashMap<>();
+        variables.put("nombre", safe(event.getUsername()));
+        variables.put("email", safe(event.getEmail()));
+        variables.put("codigo", safe(event.getCode()));
+        variables.put("fecha", fechaActual);
+
         String contenido = notificacionService.renderTemplate(
                 "templates/password-reset-email.html",
-                Map.of(
-                        "nombre", safe(event.getUsername()),
-                        "email", safe(event.getEmail()),
-                        "codigo", safe(event.getCode()),
-                        "fecha", fechaActual
-                )
+                variables
         );
         notificacionService.crearDesdeEvento("EMAIL", event.getEmail(), asunto, contenido);
     }
@@ -148,5 +181,12 @@ public class NotificacionListener {
 
     private String safe(String value) {
         return value == null ? "" : value;
+    }
+
+    private String formatDouble(Double value) {
+        if (value == null) {
+            return "0.00";
+        }
+        return String.format("%.2f", value);
     }
 }
