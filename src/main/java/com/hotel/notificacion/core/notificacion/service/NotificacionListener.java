@@ -1,9 +1,6 @@
 package com.hotel.notificacion.core.notificacion.service;
 
 import com.hotel.notificacion.infrastructure.config.RabbitConfig;
-import com.hotel.notificacion.internal.events.ReservaCancelledEvent;
-import com.hotel.notificacion.internal.events.ReservaConfirmedEvent;
-import com.hotel.notificacion.internal.events.ReservaCreatedEvent;
 import com.hotel.notificacion.internal.events.SendNotificationCommand;
 import com.hotel.notificacion.internal.events.PasswordResetEvent;
 import com.hotel.notificacion.internal.events.UserLoginEvent;
@@ -25,83 +22,6 @@ public class NotificacionListener {
 
     public NotificacionListener(NotificacionService notificacionService) {
         this.notificacionService = notificacionService;
-    }
-
-    @RabbitHandler
-    public void handleReservaCreated(ReservaCreatedEvent event) {
-        if (event.getClienteEmail() == null) {
-            return;
-        }
-        String asunto = "Reserva creada";
-
-        Map<String, String> variables = new HashMap<>();
-        variables.put("clienteNombre", safe(event.getClienteNombre()));
-        variables.put("reservaId", String.valueOf(event.getReservaId()));
-        variables.put("estado", "PENDIENTE");
-        variables.put("hotelNombre", safe(event.getHotelNombre()));
-        variables.put("hotelDireccion", "-");
-        variables.put("fechaInicio", safe(event.getFechaInicio()));
-        variables.put("fechaFin", safe(event.getFechaFin()));
-        variables.put("total", "0.00");
-        variables.put("habitaciones", "-");
-
-        String contenido = notificacionService.renderTemplate(
-                "templates/reserva-created-email.html",
-                variables
-        );
-        notificacionService.crearDesdeEvento("EMAIL", event.getClienteEmail(), asunto, contenido);
-    }
-
-    @RabbitHandler
-    public void handleReservaConfirmed(ReservaConfirmedEvent event) {
-        if (event.getClienteEmail() == null) {
-            return;
-        }
-        String asunto = "Reserva confirmada";
-
-        Map<String, String> variables = new HashMap<>();
-        variables.put("clienteNombre", safe(event.getClienteNombre()));
-        variables.put("reservaId", String.valueOf(event.getReservaId()));
-        variables.put("estado", "CONFIRMADA");
-        variables.put("hotelNombre", safe(event.getHotelNombre()));
-        variables.put("hotelDireccion", "-");
-        variables.put("fechaInicio", safe(event.getFechaInicio()));
-        variables.put("fechaFin", safe(event.getFechaFin()));
-        variables.put("total", "0.00");
-        variables.put("habitaciones", "-");
-
-        String contenido = notificacionService.renderTemplate(
-                "templates/reserva-confirmed-email.html",
-                variables
-        );
-        notificacionService.crearDesdeEvento("EMAIL", event.getClienteEmail(), asunto, contenido);
-    }
-
-    @RabbitHandler
-    public void handleReservaCancelled(ReservaCancelledEvent event) {
-        if (event.getClienteEmail() == null) {
-            return;
-        }
-        String asunto = "Reserva cancelada";
-
-        Map<String, String> variables = new HashMap<>();
-        variables.put("clienteNombre", safe(event.getClienteNombre()));
-        variables.put("reservaId", String.valueOf(event.getReservaId()));
-        variables.put("estado", "CANCELADA");
-        variables.put("hotelNombre", safe(event.getHotelNombre()));
-        variables.put("hotelDireccion", "-");
-        variables.put("fechaInicio", "-");
-        variables.put("fechaFin", "-");
-        variables.put("total", "0.00");
-        variables.put("habitaciones", "-");
-        variables.put("fechaCancelacion", "-");
-        variables.put("motivoCancelacion", safe(event.getMotivo()));
-
-        String contenido = notificacionService.renderTemplate(
-                "templates/reserva-cancelled-email.html",
-                variables
-        );
-        notificacionService.crearDesdeEvento("EMAIL", event.getClienteEmail(), asunto, contenido);
     }
 
     @RabbitHandler
@@ -181,12 +101,5 @@ public class NotificacionListener {
 
     private String safe(String value) {
         return value == null ? "" : value;
-    }
-
-    private String formatDouble(Double value) {
-        if (value == null) {
-            return "0.00";
-        }
-        return String.format("%.2f", value);
     }
 }

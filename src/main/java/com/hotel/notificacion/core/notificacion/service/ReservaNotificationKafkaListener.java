@@ -23,45 +23,46 @@ public class ReservaNotificationKafkaListener {
             return;
         }
 
-        String asunto = buildSubject(event);
-        String templatePath = getTemplatePath(event);
-        String contenido = buildHtmlContent(event, templatePath);
+        String normalizedEventType = normalizeEventType(event.getEventType());
+        String asunto = buildSubject(normalizedEventType);
+        String templatePath = getTemplatePath(normalizedEventType);
+        String contenido = buildHtmlContent(event, templatePath, normalizedEventType);
 
         // Usar userId directamente del evento (propagado desde ms-reserva)
         Long userId = event.getUserId();
 
         // Obtener eventType
-        String eventType = event.getEventType();
+        String eventType = normalizedEventType;
 
         // Crear notificación con userId y eventType asignados
         notificacionService.crearDesdeEventoConUserIdYEventType("EMAIL", event.getClienteEmail(), asunto, contenido, userId, eventType);
     }
 
-    private String buildSubject(ReservaNotificationEvent event) {
-        if ("CONFIRMED".equalsIgnoreCase(event.getEventType())) {
+    private String buildSubject(String eventType) {
+        if ("CONFIRMED".equalsIgnoreCase(eventType)) {
             return "Reserva confirmada";
         }
-        if ("CANCELLED_ADMIN".equalsIgnoreCase(event.getEventType())) {
+        if ("CANCELLED_ADMIN".equalsIgnoreCase(eventType)) {
             return "Reserva cancelada por el administrador";
         }
-        if ("CANCELLED".equalsIgnoreCase(event.getEventType())) {
+        if ("CANCELLED".equalsIgnoreCase(eventType)) {
             return "Reserva cancelada";
         }
-        return "Reserva creada";
+        return "Reserva pendiente";
     }
 
-    private String getTemplatePath(ReservaNotificationEvent event) {
-        if ("CONFIRMED".equalsIgnoreCase(event.getEventType())) {
+    private String getTemplatePath(String eventType) {
+        if ("CONFIRMED".equalsIgnoreCase(eventType)) {
             return "templates/reserva-confirmed-email.html";
         }
-        if ("CANCELLED_ADMIN".equalsIgnoreCase(event.getEventType()) ||
-            "CANCELLED".equalsIgnoreCase(event.getEventType())) {
+        if ("CANCELLED_ADMIN".equalsIgnoreCase(eventType) ||
+            "CANCELLED".equalsIgnoreCase(eventType)) {
             return "templates/reserva-cancelled-email.html";
         }
         return "templates/reserva-created-email.html";
     }
 
-    private String buildHtmlContent(ReservaNotificationEvent event, String templatePath) {
+    private String buildHtmlContent(ReservaNotificationEvent event, String templatePath, String eventType) {
         Map<String, String> variables = new HashMap<>();
 
         // Variables comunes para todos los templates
@@ -76,13 +77,23 @@ public class ReservaNotificationKafkaListener {
         variables.put("habitaciones", formatHabitaciones(event));
 
         // Variables específicas para cancelaciones
-        if ("CANCELLED_ADMIN".equalsIgnoreCase(event.getEventType()) ||
-            "CANCELLED".equalsIgnoreCase(event.getEventType())) {
+        if ("CANCELLED_ADMIN".equalsIgnoreCase(eventType) ||
+            "CANCELLED".equalsIgnoreCase(eventType)) {
             variables.put("fechaCancelacion", safe(event.getFechaCancelacion()));
             variables.put("motivoCancelacion", safe(event.getMotivoCancelacion()));
         }
 
         return notificacionService.renderTemplate(templatePath, variables);
+    }
+
+    private String normalizeEventType(String eventType) {
+        if (eventType == null || eventType.isBlank()) {
+            return "PENDING";
+        }
+        if ("CREATED".equalsIgnoreCase(eventType)) {
+            return "PENDING";
+        }
+        return eventType.toUpperCase();
     }
 
     private String formatHabitaciones(ReservaNotificationEvent event) {

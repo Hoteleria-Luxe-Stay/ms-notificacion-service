@@ -10,12 +10,11 @@ import com.hotel.notificacion.core.notificacion.model.Notificacion;
 import com.hotel.notificacion.core.notificacion.service.NotificacionService;
 import com.hotel.notificacion.helpers.mappers.NotificacionMapper;
 import com.hotel.notificacion.internal.dto.AuthTokenValidationResponse;
-import com.hotel.notificacion.infrastructure.security.AuthContextFilter;
+import com.hotel.notificacion.infrastructure.security.AuthUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.NativeWebRequest;
-import org.springframework.web.context.request.RequestAttributes;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -46,7 +45,7 @@ public class NotificacionesController implements NotificacionesApi {
         if (auth == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        if (!isAdmin(auth)) {
+        if (!AuthUtils.isAdmin(auth)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -60,7 +59,7 @@ public class NotificacionesController implements NotificacionesApi {
         if (auth == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        if (!isAdmin(auth)) {
+        if (!AuthUtils.isAdmin(auth)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -74,7 +73,7 @@ public class NotificacionesController implements NotificacionesApi {
         if (auth == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        if (!isAdmin(auth)) {
+        if (!AuthUtils.isAdmin(auth)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -88,11 +87,11 @@ public class NotificacionesController implements NotificacionesApi {
         if (auth == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        if (!isAdmin(auth)) {
+        if (!AuthUtils.isAdmin(auth)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        Long userId = auth != null ? auth.getUserId() : null;
+        Long userId = auth.getUserId();
         Notificacion notificacion = notificacionService.enviarManual(request, userId);
         return ResponseEntity.ok(NotificacionMapper.toResponse(notificacion));
     }
@@ -104,9 +103,11 @@ public class NotificacionesController implements NotificacionesApi {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
+        Long userId = auth.getUserId();
+        String email = auth.getEmail();
         List<Notificacion> notificaciones = notificacionService.listarPorUsuario(
-                auth != null ? auth.getUserId() : null,
-                auth != null ? auth.getEmail() : null,
+                userId,
+                email,
                 leida,
                 tipo
         );
@@ -121,8 +122,8 @@ public class NotificacionesController implements NotificacionesApi {
         }
 
         notificacionService.marcarComoLeida(id,
-                auth != null ? auth.getUserId() : null,
-                auth != null ? auth.getEmail() : null);
+                auth.getUserId(),
+                auth.getEmail());
 
         MessageResponse response = new MessageResponse();
         response.setMessage("Notificacion marcada como leida");
@@ -137,8 +138,8 @@ public class NotificacionesController implements NotificacionesApi {
         }
 
         notificacionService.marcarTodasComoLeidas(
-                auth != null ? auth.getUserId() : null,
-                auth != null ? auth.getEmail() : null
+                auth.getUserId(),
+                auth.getEmail()
         );
 
         MessageResponse response = new MessageResponse();
@@ -154,7 +155,7 @@ public class NotificacionesController implements NotificacionesApi {
         if (auth == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        if (!isAdmin(auth)) {
+        if (!AuthUtils.isAdmin(auth)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -194,19 +195,7 @@ public class NotificacionesController implements NotificacionesApi {
         return Optional.ofNullable(request);
     }
 
-    private boolean isAdmin(AuthTokenValidationResponse auth) {
-        return auth.getRole() != null && "ADMIN".equalsIgnoreCase(auth.getRole());
-    }
-
     private AuthTokenValidationResponse getAuth() {
-        Optional<NativeWebRequest> request = getRequest();
-        if (request.isEmpty()) {
-            return null;
-        }
-        Object value = request.get().getAttribute(AuthContextFilter.AUTH_CONTEXT_KEY, RequestAttributes.SCOPE_REQUEST);
-        if (value instanceof AuthTokenValidationResponse response) {
-            return response;
-        }
-        return null;
+        return AuthUtils.getAuth(request);
     }
 }

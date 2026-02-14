@@ -46,21 +46,6 @@ public class RabbitConfig {
     }
 
     @Bean
-    public Binding reservaCreatedBinding(TopicExchange eventsExchange, Queue eventsQueue) {
-        return BindingBuilder.bind(eventsQueue).to(eventsExchange).with("reserva.created");
-    }
-
-    @Bean
-    public Binding reservaConfirmedBinding(TopicExchange eventsExchange, Queue eventsQueue) {
-        return BindingBuilder.bind(eventsQueue).to(eventsExchange).with("reserva.confirmed");
-    }
-
-    @Bean
-    public Binding reservaCancelledBinding(TopicExchange eventsExchange, Queue eventsQueue) {
-        return BindingBuilder.bind(eventsQueue).to(eventsExchange).with("reserva.cancelled");
-    }
-
-    @Bean
     public Binding userRegisteredBinding(TopicExchange eventsExchange, Queue eventsQueue) {
         return BindingBuilder.bind(eventsQueue).to(eventsExchange).with("user.registered");
     }
@@ -98,18 +83,6 @@ public class RabbitConfig {
         idClassMapping.put(
                 "com.hotel.auth.infrastructure.events.PasswordResetEvent",
                 com.hotel.notificacion.internal.events.PasswordResetEvent.class
-        );
-        idClassMapping.put(
-                "com.hotel.reserva.infrastructure.events.ReservaCreatedEvent",
-                com.hotel.notificacion.internal.events.ReservaCreatedEvent.class
-        );
-        idClassMapping.put(
-                "com.hotel.reserva.infrastructure.events.ReservaConfirmedEvent",
-                com.hotel.notificacion.internal.events.ReservaConfirmedEvent.class
-        );
-        idClassMapping.put(
-                "com.hotel.reserva.infrastructure.events.ReservaCancelledEvent",
-                com.hotel.notificacion.internal.events.ReservaCancelledEvent.class
         );
         typeMapper.setIdClassMapping(idClassMapping);
         converter.setJavaTypeMapper(typeMapper);

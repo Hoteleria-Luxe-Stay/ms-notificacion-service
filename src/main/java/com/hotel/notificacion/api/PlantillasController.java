@@ -7,12 +7,11 @@ import com.hotel.notificacion.core.plantilla.model.Plantilla;
 import com.hotel.notificacion.core.plantilla.service.PlantillaService;
 import com.hotel.notificacion.helpers.mappers.PlantillaMapper;
 import com.hotel.notificacion.internal.dto.AuthTokenValidationResponse;
-import com.hotel.notificacion.infrastructure.security.AuthContextFilter;
+import com.hotel.notificacion.infrastructure.security.AuthUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.NativeWebRequest;
-import org.springframework.web.context.request.RequestAttributes;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,7 +34,7 @@ public class PlantillasController implements PlantillasApi {
         if (auth == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        if (!isAdmin(auth)) {
+        if (!AuthUtils.isAdmin(auth)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -49,7 +48,7 @@ public class PlantillasController implements PlantillasApi {
         if (auth == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        if (!isAdmin(auth)) {
+        if (!AuthUtils.isAdmin(auth)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -63,7 +62,7 @@ public class PlantillasController implements PlantillasApi {
         if (auth == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        if (!isAdmin(auth)) {
+        if (!AuthUtils.isAdmin(auth)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -77,7 +76,7 @@ public class PlantillasController implements PlantillasApi {
         if (auth == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        if (!isAdmin(auth)) {
+        if (!AuthUtils.isAdmin(auth)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -91,7 +90,7 @@ public class PlantillasController implements PlantillasApi {
         if (auth == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        if (!isAdmin(auth)) {
+        if (!AuthUtils.isAdmin(auth)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -107,18 +106,6 @@ public class PlantillasController implements PlantillasApi {
     }
 
     private AuthTokenValidationResponse getAuth() {
-        Optional<NativeWebRequest> request = getRequest();
-        if (request.isEmpty()) {
-            return null;
-        }
-        Object value = request.get().getAttribute(AuthContextFilter.AUTH_CONTEXT_KEY, RequestAttributes.SCOPE_REQUEST);
-        if (value instanceof AuthTokenValidationResponse response) {
-            return response;
-        }
-        return null;
-    }
-
-    private boolean isAdmin(AuthTokenValidationResponse auth) {
-        return auth.getRole() != null && "ADMIN".equalsIgnoreCase(auth.getRole());
+        return AuthUtils.getAuth(request);
     }
 }

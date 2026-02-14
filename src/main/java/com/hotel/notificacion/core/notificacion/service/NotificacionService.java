@@ -193,7 +193,7 @@ public class NotificacionService {
         return switch (eventType.toUpperCase()) {
             case "LOGIN" -> "Inicio de sesión exitoso";
             case "CONFIRMED" -> "Tu reserva fue confirmada";
-            case "CREATED" -> "Tu reserva fue creada";
+            case "CREATED", "PENDING" -> "Tu reserva está pendiente";
             case "CANCELLED_ADMIN" -> "Tu reserva fue cancelada por el administrador";
             case "CANCELLED" -> "Tu reserva fue cancelada";
             default -> "Nueva notificación";
