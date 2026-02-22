@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nuevo Mensaje de Contacto - LuxeStay</title>
+</head>
+
+<body style="margin:0;padding:0;background:#0b1220;font-family:Arial, Helvetica, sans-serif;-webkit-font-smoothing:antialiased;">
+<!-- Preheader -->
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+  Nuevo mensaje de contacto de {{nombre}} — {{asunto}}
+</div>
+
+<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#0b1220;padding:28px 0;">
+  <tr>
+    <td align="center" style="padding:0 12px;">
+
+      <!-- Contenedor principal -->
+      <table width="640" cellpadding="0" cellspacing="0" role="presentation"
+             style="width:640px;max-width:640px;background:#0f172a;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);box-shadow:0 16px 40px rgba(0,0,0,0.35);">
+
+        <!-- Header -->
+        <tr>
+          <td style="padding:30px 34px;background:#111827;">
+            <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+              <tr>
+                <td align="left" style="vertical-align:middle;">
+                  <div style="display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.35);color:#f59e0b;font-size:12px;letter-spacing:0.4px;">
+                    LUXESTAY &middot; BANDEJA DE SOPORTE
+                  </div>
+                  <h1 style="margin:14px 0 6px;font-size:24px;line-height:1.25;color:#e5e7eb;font-weight:700;">
+                    Nuevo Mensaje de Contacto
+                  </h1>
+                  <p style="margin:0;font-size:14px;line-height:1.6;color:#a7b0c0;">
+                    Un usuario ha enviado un mensaje desde la web
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Separador -->
+        <tr>
+          <td style="height:1px;background:rgba(255,255,255,0.08);"></td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:30px 34px;color:#e5e7eb;">
+
+            <!-- Asunto destacado -->
+            <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin:0 0 24px;">
+              <tr>
+                <td align="center" style="padding:16px;background:rgba(245,158,11,0.08);border-radius:12px;border:1px solid rgba(245,158,11,0.25);">
+                  <div style="display:inline-block;padding:8px 16px;border-radius:999px;background:rgba(245,158,11,0.18);border:1px solid rgba(245,158,11,0.4);color:#fbbf24;font-size:13px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">
+                    ✉ {{asunto}}
+                  </div>
+                  <p style="margin:10px 0 0;font-size:13px;color:#94a3b8;">
+                    Recibido el {{fecha}}
+                  </p>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Datos del remitente -->
+            <table width="100%" cellpadding="0" cellspacing="0" role="presentation"
+                   style="margin:0 0 18px;background:#0b1220;border-radius:14px;border:1px solid rgba(255,255,255,0.08);">
+              <tr>
+                <td style="padding:18px;">
+                  <p style="margin:0 0 12px;font-size:12px;color:#94a3b8;letter-spacing:0.3px;text-transform:uppercase;">
+                    Datos del Remitente
+                  </p>
+                  <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                    <tr>
+                      <td style="padding:10px 0;border-top:1px solid rgba(255,255,255,0.06);font-size:14px;">
+                        <strong style="color:#e5e7eb;display:inline-block;width:90px;">Nombre:</strong>
+                        <span style="color:#cbd5e1;">{{nombre}}</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:10px 0;border-top:1px solid rgba(255,255,255,0.06);font-size:14px;">
+                        <strong style="color:#e5e7eb;display:inline-block;width:90px;">Email:</strong>
+                        <a href="mailto:{{email}}" style="color:#f59e0b;text-decoration:none;">{{email}}</a>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:10px 0;border-top:1px solid rgba(255,255,255,0.06);font-size:14px;">
+                        <strong style="color:#e5e7eb;display:inline-block;width:90px;">Teléfono:</strong>
+                        <span style="color:#cbd5e1;">{{telefono}}</span>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Mensaje -->
+            <table width="100%" cellpadding="0" cellspacing="0" role="presentation"
+                   style="background:#0b1220;border-radius:14px;border:1px solid rgba(255,255,255,0.08);">
+              <tr>
+                <td style="padding:18px;">
+                  <p style="margin:0 0 12px;font-size:12px;color:#94a3b8;letter-spacing:0.3px;text-transform:uppercase;">
+                    Mensaje
+                  </p>
+                  <p style="margin:0;font-size:15px;line-height:1.8;color:#cbd5e1;white-space:pre-wrap;word-break:break-word;">{{mensaje}}</p>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Responder al usuario -->
+            <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin:24px 0 0;">
+              <tr>
+                <td align="center">
+                  <a href="mailto:{{email}}?subject=Re: {{asunto}}"
+                     style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#0b1220;font-size:14px;font-weight:700;text-decoration:none;border-radius:999px;letter-spacing:0.3px;">
+                    Responder a {{nombre}}
+                  </a>
+                </td>
+              </tr>
+            </table>
+
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="padding:18px 34px;background:#0b1220;border-top:1px solid rgba(255,255,255,0.08);">
+            <p style="margin:0 0 8px;font-size:12px;line-height:1.6;color:#94a3b8;">
+              Este mensaje fue generado automáticamente por el sistema de contacto de LuxeStay.
+            </p>
+            <p style="margin:0;font-size:12px;line-height:1.6;color:#64748b;">
+              &copy; <span style="color:#94a3b8;">LuxeStay</span>. Todos los derechos reservados.
+              Solo el equipo de soporte autorizado debe leer este mensaje.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+
+      <!-- Nota inferior -->
+      <table width="640" cellpadding="0" cellspacing="0" role="presentation" style="width:640px;max-width:640px;">
+        <tr>
+          <td style="padding:14px 10px 0;color:#475569;font-size:11px;line-height:1.6;text-align:center;">
+            LuxeStay &middot; Bandeja interna de soporte
+          </td>
+        </tr>
+      </table>
+
+    </td>
+  </tr>
+</table>
+</body>
+</html>

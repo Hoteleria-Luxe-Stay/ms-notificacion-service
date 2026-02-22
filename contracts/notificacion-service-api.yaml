@@ -186,6 +186,29 @@ paths:
               schema:
                 $ref: '#/components/schemas/MessageResponse'
 
+  /mis-notificaciones/eliminar-por-origen:
+    delete:
+      tags: [notificaciones]
+      summary: Eliminar mis notificaciones por origen de forma permanente
+      operationId: eliminarMisNotificaciones
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: origen
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [sesiones, reservas]
+          description: Origen de las notificaciones a eliminar (sesiones=LOGIN, reservas=CONFIRMED/PENDING/CANCELLED)
+      responses:
+        '200':
+          description: Notificaciones eliminadas permanentemente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
   # ==================== PLANTILLAS ====================
   /plantillas:
     get:

@@ -1,6 +1,7 @@
 package com.hotel.notificacion.core.notificacion.service;
 
 import com.hotel.notificacion.internal.events.ReservaNotificationEvent;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -13,13 +14,16 @@ public class ReservaNotificationKafkaListener {
 
     private final NotificacionService notificacionService;
 
+    @Value("${app.notifications.reserva.enabled:false}")
+    private boolean reservaEnabled;
+
     public ReservaNotificationKafkaListener(NotificacionService notificacionService) {
         this.notificacionService = notificacionService;
     }
 
     @KafkaListener(topics = "${app.kafka.topics.reserva-notifications}")
     public void handleReservaNotification(ReservaNotificationEvent event) {
-        if (event.getClienteEmail() == null) {
+        if (!reservaEnabled || event.getClienteEmail() == null) {
             return;
         }
 

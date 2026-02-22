@@ -2,6 +2,7 @@ package com.hotel.notificacion.core.notificacion.service;
 
 import com.hotel.notificacion.api.dto.ContactoRequest;
 import com.hotel.notificacion.api.dto.EnviarNotificacionRequest;
+import com.hotel.notificacion.internal.events.ContactoEvent;
 import com.hotel.notificacion.core.notificacion.model.Notificacion;
 import com.hotel.notificacion.core.notificacion.repository.NotificacionRepository;
 import com.hotel.notificacion.core.plantilla.model.Plantilla;
@@ -18,6 +19,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -34,6 +37,9 @@ public class NotificacionService {
 
     @Value("${klab.mail.from-email:}")
     private String mailFrom;
+
+    @Value("${app.support.email:toraotrafalgar3@gmail.com}")
+    private String supportEmail;
 
     public NotificacionService(NotificacionRepository notificacionRepository,
                                PlantillaRepository plantillaRepository,
@@ -130,6 +136,23 @@ public class NotificacionService {
         notificacionRepository.saveAll(notificaciones);
     }
 
+    public void eliminarPorOrigen(Long userId, String email, String origen) {
+        List<String> eventTypes;
+        if ("sesiones".equalsIgnoreCase(origen)) {
+            eventTypes = List.of("LOGIN");
+        } else if ("reservas".equalsIgnoreCase(origen)) {
+            eventTypes = List.of("CONFIRMED", "PENDING", "CREATED", "CANCELLED", "CANCELLED_ADMIN");
+        } else {
+            throw new ValidationException("origen", "Origen invalido: " + origen);
+        }
+
+        List<Notificacion> aEliminar = userId != null
+                ? notificacionRepository.findByUserIdAndEventTypeIn(userId, eventTypes)
+                : notificacionRepository.findByDestinatarioAndEventTypeIn(email, eventTypes);
+
+        notificacionRepository.deleteAll(aEliminar);
+    }
+
     public Notificacion crearDesdeEvento(String tipo, String destinatario, String asunto, String contenido) {
         return crearDesdeEventoConUserId(tipo, destinatario, asunto, contenido, null);
     }
@@ -151,6 +174,30 @@ public class NotificacionService {
         String destinatario = mailFrom == null || mailFrom.isBlank() ? request.getEmail() : mailFrom;
 
         Notificacion notificacion = crearNotificacionBase("EMAIL", destinatario, asunto, contenido, null);
+        notificacion = notificacionRepository.save(notificacion);
+        procesarEnvio(notificacion);
+        return notificacionRepository.save(notificacion);
+    }
+
+    public Notificacion crearContactoDesdeEvento(ContactoEvent event) {
+        String asuntoBase = event.getAsunto() != null && !event.getAsunto().isBlank()
+                ? event.getAsunto()
+                : "Mensaje de contacto";
+        String asunto = String.format("[Contacto Web] %s - %s", asuntoBase, safe(event.getNombre()));
+
+        String fechaActual = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+
+        Map<String, String> variables = new HashMap<>();
+        variables.put("nombre", safe(event.getNombre()));
+        variables.put("email", safe(event.getEmail()));
+        variables.put("telefono", safe(event.getTelefono()).isBlank() ? "No proporcionado" : safe(event.getTelefono()));
+        variables.put("asunto", asuntoBase);
+        variables.put("mensaje", safe(event.getMensaje()));
+        variables.put("fecha", fechaActual);
+
+        String contenido = renderTemplate("templates/contacto-soporte-email.html", variables);
+
+        Notificacion notificacion = crearNotificacionBase("EMAIL", supportEmail, asunto, contenido, null, "CONTACTO");
         notificacion = notificacionRepository.save(notificacion);
         procesarEnvio(notificacion);
         return notificacionRepository.save(notificacion);
@@ -196,6 +243,7 @@ public class NotificacionService {
             case "CREATED", "PENDING" -> "Tu reserva está pendiente";
             case "CANCELLED_ADMIN" -> "Tu reserva fue cancelada por el administrador";
             case "CANCELLED" -> "Tu reserva fue cancelada";
+            case "CONTACTO" -> "Mensaje de contacto recibido";
             default -> "Nueva notificación";
         };
     }
@@ -249,5 +297,9 @@ public class NotificacionService {
             return true;
         }
         return email != null && email.equalsIgnoreCase(notificacion.getDestinatario());
+    }
+
+    private String safe(String value) {
+        return value == null ? "" : value;
     }
 }

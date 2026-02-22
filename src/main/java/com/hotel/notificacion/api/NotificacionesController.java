@@ -148,6 +148,20 @@ public class NotificacionesController implements NotificacionesApi {
     }
 
     @Override
+    public ResponseEntity<MessageResponse> eliminarMisNotificaciones(String origen) {
+        AuthTokenValidationResponse auth = getAuth();
+        if (auth == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        notificacionService.eliminarPorOrigen(auth.getUserId(), auth.getEmail(), origen);
+
+        MessageResponse response = new MessageResponse();
+        response.setMessage("Notificaciones de " + origen + " eliminadas permanentemente");
+        return ResponseEntity.ok(response);
+    }
+
+    @Override
     public ResponseEntity<EstadisticasResponse> obtenerEstadisticas(
             LocalDate fechaDesde,
             LocalDate fechaHasta) {

@@ -7,6 +7,7 @@ import com.hotel.notificacion.internal.events.UserLoginEvent;
 import com.hotel.notificacion.internal.events.UserRegisteredEvent;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -20,13 +21,16 @@ public class NotificacionListener {
 
     private final NotificacionService notificacionService;
 
+    @Value("${app.notifications.sesion.enabled:false}")
+    private boolean sesionEnabled;
+
     public NotificacionListener(NotificacionService notificacionService) {
         this.notificacionService = notificacionService;
     }
 
     @RabbitHandler
     public void handleUserRegistered(UserRegisteredEvent event) {
-        if (event.getEmail() == null) {
+        if (!sesionEnabled || event.getEmail() == null) {
             return;
         }
         String asunto = "Bienvenido a LuxeStay";
@@ -47,7 +51,7 @@ public class NotificacionListener {
 
     @RabbitHandler
     public void handleUserLogin(UserLoginEvent event) {
-        if (event.getEmail() == null) {
+        if (!sesionEnabled || event.getEmail() == null) {
             return;
         }
         if (event.getRole() != null && "ADMIN".equalsIgnoreCase(event.getRole())) {
