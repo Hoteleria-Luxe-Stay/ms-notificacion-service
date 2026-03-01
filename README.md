@@ -8,7 +8,7 @@ Microservicio de gestión de notificaciones y envío de emails. Consume eventos 
 |-----------|-------|
 | Puerto | 8084 |
 | Java | 21 |
-| Spring Boot | 3.5.7 |
+| Spring Boot | 3.4.0 |
 | Spring Cloud | 2024.0.1 |
 | Context Path | /api/v1 |
 | Base de Datos | MySQL |
@@ -18,35 +18,34 @@ Microservicio de gestión de notificaciones y envío de emails. Consume eventos 
 
 ```
 ms-notificacion/
-└── notificacion-service/
-    ├── pom.xml
-    ├── Dockerfile
-    ├── contracts/
-    │   └── notificacion-service-api.yaml
-    └── src/main/
-        ├── java/com/hotel/notificacion/
-        │   ├── NotificacionServiceApplication.java
-        │   ├── api/
-        │   │   ├── ContactoController.java
-        │   │   ├── NotificacionesController.java
-        │   │   └── PlantillasController.java
-        │   ├── core/
-        │   │   ├── notificacion/
-        │   │   │   ├── model/Notificacion.java
-        │   │   │   ├── repository/NotificacionRepository.java
-        │   │   │   └── service/
-        │   │   │       ├── NotificacionService.java
-        │   │   │       ├── NotificacionListener.java
-        │   │   │       └── ReservaNotificationKafkaListener.java
-        │   │   └── plantilla/
-        │   │       ├── model/Plantilla.java
-        │   │       ├── repository/PlantillaRepository.java
-        │   │       └── service/PlantillaService.java
-        │   ├── helpers/ (exceptions, mappers)
-        │   ├── infrastructure/ (config, security)
-        │   └── internal/ (AuthInternalApi, events)
-        └── resources/
-            └── application.yml
+├── pom.xml
+├── Dockerfile
+├── contracts/
+│   └── notificacion-service-api.yaml
+└── src/main/
+    ├── java/com/hotel/notificacion/
+    │   ├── NotificacionServiceApplication.java
+    │   ├── api/
+    │   │   ├── ContactoController.java
+    │   │   ├── NotificacionesController.java
+    │   │   └── PlantillasController.java
+    │   ├── core/
+    │   │   ├── notificacion/
+    │   │   │   ├── model/Notificacion.java
+    │   │   │   ├── repository/NotificacionRepository.java
+    │   │   │   └── service/
+    │   │   │       ├── NotificacionService.java
+    │   │   │       ├── NotificacionListener.java
+    │   │   │       └── ReservaNotificationKafkaListener.java
+    │   │   └── plantilla/
+    │   │       ├── model/Plantilla.java
+    │   │       ├── repository/PlantillaRepository.java
+    │   │       └── service/PlantillaService.java
+    │   ├── helpers/ (exceptions, mappers)
+    │   ├── infrastructure/ (config, security)
+    │   └── internal/ (AuthInternalApi, events)
+    └── resources/
+        └── application.yml
 ```
 
 ## Endpoints
@@ -111,37 +110,23 @@ ms-notificacion/
 ### Dockerfile
 
 ```dockerfile
-FROM eclipse-temurin:21-jdk-alpine AS builder
-
+FROM maven:3.9-eclipse-temurin-21-alpine AS builder
 WORKDIR /app
-
 COPY pom.xml .
-COPY .mvn .mvn
-COPY mvnw .
-
-RUN chmod +x mvnw && ./mvnw dependency:go-offline -B
-
+RUN mvn dependency:go-offline -B
 COPY src ./src
 COPY contracts ./contracts
-
-RUN ./mvnw clean package -DskipTests
+RUN mvn clean package -DskipTests -B
 
 FROM eclipse-temurin:21-jre-alpine
-
 WORKDIR /app
-
 RUN addgroup -S spring && adduser -S spring -G spring
+COPY --from=builder /app/target/*.jar app.jar
 USER spring:spring
-
-COPY --from=builder /app/target/notificacion-service-*.jar app.jar
-
 EXPOSE 8084
-
 ENV JAVA_OPTS="-Xms256m -Xmx512m"
-
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8084/actuator/health || exit 1
-
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8084/api/v1/actuator/health || exit 1
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
 ```
 
@@ -153,7 +138,7 @@ version: '3.8'
 services:
   notificacion-service:
     build:
-      context: ./notificacion-service
+      context: .
       dockerfile: Dockerfile
     container_name: notificacion-service
     ports:
@@ -176,6 +161,7 @@ services:
       - EUREKA_URL=http://discovery-service:8761/eureka
       - CONFIG_SERVER_URL=http://config-server:8888
       - AUTH_SERVICE_URL=http://auth-service:8081
+      - JAVA_OPTS=-Xms256m -Xmx512m
     depends_on:
       mysql:
         condition: service_healthy
@@ -204,11 +190,10 @@ networks:
 
 ```bash
 # Compilar
-cd notificacion-service
-./mvnw clean package -DskipTests
+mvn clean package -DskipTests
 
 # Construir imagen
-docker build -t notificacion-service:latest ./notificacion-service
+docker build -t notificacion-service:latest .
 
 # Ejecutar
 docker run -d \
@@ -385,7 +370,7 @@ az acr build \
   --registry $ACR_NAME \
   --image notificacion-service:v1.0.0 \
   --image notificacion-service:latest \
-  ./notificacion-service
+  .
 ```
 
 ### 2. Deployment en AKS
@@ -468,7 +453,7 @@ variables:
   dockerRegistryServiceConnection: 'acr-connection'
   imageRepository: 'notificacion-service'
   containerRegistry: 'acrhotelreservas.azurecr.io'
-  dockerfilePath: 'ms-notificacion/notificacion-service/Dockerfile'
+  dockerfilePath: 'ms-notificacion/Dockerfile'
   tag: '$(Build.BuildId)'
 
 pool:
@@ -482,7 +467,7 @@ stages:
           - task: Maven@3
             displayName: 'Maven Package'
             inputs:
-              mavenPomFile: 'ms-notificacion/notificacion-service/pom.xml'
+              mavenPomFile: 'ms-notificacion/pom.xml'
               goals: 'clean package'
               options: '-DskipTests'
               javaHomeOption: 'JDKVersion'
@@ -622,10 +607,8 @@ curl -X POST http://localhost:8084/api/v1/notificaciones/enviar \
 ## Ejecución Local
 
 ```bash
-cd notificacion-service
-
 # Compilar
-./mvnw clean package -DskipTests
+mvn clean package -DskipTests
 
 # Ejecutar
 java -jar target/notificacion-service-1.0.0-SNAPSHOT.jar \
